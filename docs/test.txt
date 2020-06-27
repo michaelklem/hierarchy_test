@@ -1,0 +1,26 @@
+schema used
+
+
+CREATE TABLE `ai_accounts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `type` int default 1 not null,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1
+
+
+
+
+CREATE TABLE `ai_accounts_parents` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `account_id` int NOT NULL,
+  `parent_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_key` (`account_id`,`parent_id`),
+  KEY `account_id` (`account_id`),
+  KEY `parent_id` (`parent_id`),
+  CONSTRAINT `ai_account_parent_account_index` FOREIGN KEY (`account_id`) REFERENCES `ai_accounts` (`id`),
+  CONSTRAINT `ai_account_parent_parent_index` FOREIGN KEY (`parent_id`) REFERENCES `ai_accounts` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=latin1
+
+
