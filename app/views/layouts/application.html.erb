@@ -7,9 +7,84 @@
 
     <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+
+
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <!--
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/graphdracula/1.0.3/dracula.min.js"></script>
+-->
+    <script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+
+    <script type="text/javascript" src="https://dagrejs.github.io/project/dagre-d3/latest/dagre-d3.js"></script>
+    <script type="text/javascript" src="https://dagrejs.github.io/project/dagre/latest/dagre.js"></script>
+    <script type="text/javascript" src="https://dagrejs.github.io/project/dagre-d3/latest/demo/tipsy.js"></script>
+
+
+    <link rel="stylesheet" media="all" href="https://dagrejs.github.io/project/dagre-d3/latest/demo/tipsy.css" data-turbolinks-track="reload" />
+
+<style id="css">
+text {
+  font-weight: 300;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+  font-size: 14px;
+}
+
+.node rect {
+  stroke: #333;
+  fill: #fff;
+}
+
+.edgePath path {
+  stroke: #333;
+  fill: #333;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  pointer-events: none;
+}
+
+/* This styles the title of the tooltip */
+.tipsy .name {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #60b1fc;
+  margin: 0;
+}
+
+/* This styles the body of the tooltip */
+.tipsy .description {
+  font-size: 1.2em;
+}
+
+
+
+.row {
+	max-width: 100rem;
+}
+.svgrow {
+    overflow: scroll;
+}
+.svgrow svg {
+    min-width: 70rem;
+    min-height:600px;
+    border: 1px solid blue;
+    text-align:center;
+}
+
+body {
+	overflow-x: hidden;
+}
+
+</style>
+
   </head>
 
   <body>
     <%= yield %>
+
+    <%= yield :javascript %>
   </body>
 </html>
