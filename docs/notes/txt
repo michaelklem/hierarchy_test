@@ -1,17 +1,17 @@
 -- find all root nodes
-select a.name, a.id from account_parents ap
-join accounts a on a.id = ap.account_id
+select a.name, a.id from ai_accounts_parents ap
+join ai_accounts a on a.id = ap.account_id
 where ap.parent_id is null
 
 
 -- find direct children (1 level down) for each root
-select a.name, p.name as parent from account_parents ap
-join accounts a on a.id = ap.account_id
-join accounts p on p.id = ap.parent_id
+select a.id, p.id as parent from ai_accounts_parents ap
+join ai_accounts a on a.id = ap.account_id
+join ai_accounts p on p.id = ap.parent_id
 where ap.parent_id in (
   -- find parent nodes
-	select  a.id from account_parents ap
-	join accounts a on a.id = ap.account_id
+	select  a.id from ai_accounts_parents ap
+	join ai_accounts a on a.id = ap.account_id
 	where ap.parent_id is null
 )
 
@@ -22,90 +22,122 @@ where ap.parent_id in (
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id FROM account_parents WHERE parent_id IS NULL
+  SELECT account_id, parent_id FROM ai_accounts_parents WHERE parent_id IS NULL
   UNION ALL
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id FROM account_parents c 
+  SELECT c.account_id, c.parent_id FROM ai_accounts_parents c 
   JOIN cte ON cte.account_id=c.parent_id --  # find children
 )
-SELECT a.name, p.name as parent FROM cte
-join accounts a on a.id = cte.account_id
-join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent FROM cte
+join ai_accounts a on a.id = cte.account_id
+join ai_accounts p on p.id = cte.parent_id
 
 
 
--- find entire hierarchy of a specific root node (id 1)
+-- find entire hierarchy of a specific node (id 1)
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id FROM account_parents WHERE parent_id = 1
+  SELECT account_id, parent_id FROM ai_accounts_parents WHERE parent_id = 1
   UNION ALL
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id FROM account_parents c 
+  SELECT c.account_id, c.parent_id FROM ai_accounts_parents c 
   JOIN cte ON cte.account_id=c.parent_id --  # find children
 )
-SELECT a.name, p.name as parent, a.id, p.id FROM cte
-join accounts a on a.id = cte.account_id
-join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, a.id, p.id FROM cte
+join ai_accounts a on a.id = cte.account_id
+join ai_accounts p on p.id = cte.parent_id
 
 
 
 
 
--- find entire hierarchy of a specific root node (id 1) with depth of nodes
+-- find entire hierarchy of a specific node (id 1) with depth of nodes
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth FROM account_parents WHERE parent_id = 1
+  SELECT account_id, parent_id, 0 as depth FROM ai_accounts_parents WHERE parent_id = 1
   UNION ALL
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id,cte.depth + 1 FROM account_parents c 
+  SELECT c.account_id, c.parent_id,cte.depth + 1 FROM ai_accounts_parents c 
   JOIN cte ON cte.account_id=c.parent_id --  # find children
 )
-SELECT a.name, p.name as parent, a.id, p.id, cte.depth FROM cte
-join accounts a on a.id = cte.account_id
-join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, a.id, p.id, cte.depth FROM cte
+join ai_accounts a on a.id = cte.account_id
+join ai_accounts p on p.id = cte.parent_id
 
 
 
-
-
--- find entire hierarchy of a specific root node (id 1) with depth of nodes and path of hierarchy
+-- same as above but stop at a specific depth
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth, CAST(account_id AS CHAR(200)) as path FROM account_parents WHERE parent_id = 1
+  SELECT account_id, parent_id, 0 as depth FROM ai_accounts_parents WHERE parent_id = 1
   UNION ALL
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", c.account_id) FROM account_parents c 
+  SELECT c.account_id, c.parent_id,cte.depth + 1 FROM ai_accounts_parents c 
   JOIN cte ON cte.account_id=c.parent_id --  # find children
+  where cte.depth < 4
 )
-SELECT a.name, p.name as parent, a.id, p.id, cte.depth, cte.path FROM cte
-join accounts a on a.id = cte.account_id
-join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, a.id, p.id, cte.depth FROM cte
+join ai_accounts a on a.id = cte.account_id
+join ai_accounts p on p.id = cte.parent_id
 
 
 
 
--- find entire hierarchy of a specific root node (id 1) with depth of nodes and path of hierarchy with account names
+-- find entire hierarchy of a specific  node (id 1) with depth of nodes and path of hierarchy
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth, CAST(a.name AS CHAR(200)) as path FROM account_parents 
-  join accounts a on a.id = account_id
+  SELECT account_id, parent_id, 0 as depth, CAST(account_id AS CHAR(200)) as path FROM ai_accounts_parents WHERE parent_id = 1
+  UNION ALL
+  -- # recursive SELECT
+  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", c.account_id) FROM ai_accounts_parents c 
+  JOIN cte ON cte.account_id=c.parent_id --  # find children
+)
+SELECT a.id, p.id as parent, a.id, p.id, cte.depth, cte.path FROM cte
+join ai_accounts a on a.id = cte.account_id
+join ai_accounts p on p.id = cte.parent_id
+
+
+-- same as above but stop at a specific depth
+WITH RECURSIVE cte AS
+(
+  -- # seed SELECT
+  SELECT account_id, parent_id, 0 as depth, CAST(account_id AS CHAR(200)) as path FROM ai_accounts_parents WHERE parent_id = 1
+  UNION ALL
+  -- # recursive SELECT
+  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", c.account_id) FROM ai_accounts_parents c 
+  JOIN cte ON cte.account_id=c.parent_id --  # find children
+  where cte.depth < 4
+)
+SELECT a.id, p.id as parent, a.id, p.id, cte.depth, cte.path FROM cte
+join ai_accounts a on a.id = cte.account_id
+join ai_accounts p on p.id = cte.parent_id
+
+
+
+
+-- find entire hierarchy of all root nodes with depth of nodes and path of hierarchy with account names
+WITH RECURSIVE cte AS
+(
+  -- # seed SELECT
+  SELECT account_id, parent_id, 0 as depth, CAST(a.name AS CHAR(200)) as path FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
   WHERE parent_id is null
 
   UNION ALL
 
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", a.name) FROM account_parents c 
-  join accounts a on a.id = c.account_id
+  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", a.name) FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
    JOIN cte ON cte.account_id=c.parent_id --  # find children
 )
 
-SELECT a.name, p.name as parent, cte.path, cte.account_id, cte.parent_id FROM cte
-join accounts a on a.id = cte.account_id
-left join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, cte.path, cte.account_id, cte.parent_id FROM cte
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
 
 -- outputs
 a1		a1	1	
@@ -122,55 +154,81 @@ b5	a3	a3,b5	9	3
 
 
 
--- find leaf nodes for a given node. Leaf nodes = those account ids that are not parents of other nodes
-
+-- find leaf nodes for a given node (id = 2). Leaf nodes = those account ids that are not parents of other nodes
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth, CAST(a.name AS CHAR(200)) as path FROM account_parents 
-  join accounts a on a.id = account_id
+  SELECT account_id, parent_id, 0 as depth, CAST(a.id AS CHAR(200)) as path FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
   WHERE parent_id = 2
 
   UNION ALL
 
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", a.name) FROM account_parents c 
-  join accounts a on a.id = c.account_id
+  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", a.id) FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
    JOIN cte ON cte.account_id=c.parent_id --  # find children
 )
 
-SELECT a.name, p.name as parent, cte.depth, cte.path, cte.account_id, cte.parent_id FROM cte
-join accounts a on a.id = cte.account_id
-left join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, cte.depth, cte.path, cte.account_id, cte.parent_id FROM cte
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
 -- now find which nodes are not a parent to others
 -- this seems very inefficient as it looks across an entire table
 where cte.account_id  
 not in (
-select distinct parent_id from account_parents where parent_id is not null
+select distinct parent_id from ai_accounts_parents where parent_id is not null
 )
 
 
+
+-- same as above but stop at a specific depth
+WITH RECURSIVE cte AS
+(
+  -- # seed SELECT
+  SELECT account_id, parent_id, 0 as depth, CAST(a.id AS CHAR(200)) as path FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
+  WHERE parent_id = 2
+
+  UNION ALL
+
+  -- # recursive SELECT
+  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", a.id) FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
+   JOIN cte ON cte.account_id=c.parent_id --  # find children
+   where cte.depth < 4
+)
+
+SELECT a.id, p.id as parent, cte.depth, cte.path, cte.account_id, cte.parent_id FROM cte
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
+-- now find which nodes are not a parent to others
+-- this seems very inefficient as it looks across an entire table
+where cte.account_id  
+not in (
+select distinct parent_id from ai_accounts_parents where parent_id is not null
+)
 
 
 -- given a node, find all of its parent nodes
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth, CAST(a.name AS CHAR(200)) as path, CAST(a.id AS CHAR(200)) as path_ids FROM account_parents 
-  join accounts a on a.id = account_id
+  SELECT account_id, parent_id, 0 as depth, CAST(a.id AS CHAR(200)) as path, CAST(a.id AS CHAR(200)) as path_ids FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
   WHERE account_id  = 19 -- 19 = d3
 
   UNION ALL
 
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id, cte.depth - 1, CONCAT(cte.path, ",", a.name) , CONCAT(cte.path_ids, ",", a.id)FROM account_parents c 
-  join accounts a on a.id = c.account_id
+  SELECT c.account_id, c.parent_id, cte.depth - 1, CONCAT(cte.path, ",", a.id) , CONCAT(cte.path_ids, ",", a.id)FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
    JOIN cte ON c.account_id=cte.parent_id --  # find children
 )
 
-SELECT a.name, p.name as parent, cte.depth, cte.path, cte.path_ids, cte.account_id, cte.parent_id FROM cte
-join accounts a on a.id = cte.account_id
-left join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, cte.depth, cte.path, cte.path_ids, cte.account_id, cte.parent_id FROM cte
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
 
 -- returns
 d3	c4	0	d3	19	19	14
@@ -182,6 +240,28 @@ a3		-3	d3,c4,b3,a3	19,14,7,3	3
 
 
 
+-- same as above, but only go up the specified number of levels
+-- given a node, find all of its parent nodes
+WITH RECURSIVE cte AS
+(
+  -- # seed SELECT
+  SELECT account_id, parent_id, 0 as depth, CAST(a.id AS CHAR(200)) as path, CAST(a.id AS CHAR(200)) as path_ids FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
+  WHERE account_id  = 19 -- 19 = d3
+
+  UNION ALL
+
+  -- # recursive SELECT
+  SELECT c.account_id, c.parent_id, cte.depth - 1, CONCAT(cte.path, ",", a.id) , CONCAT(cte.path_ids, ",", a.id)FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
+   JOIN cte ON c.account_id=cte.parent_id --  # find children
+    where cte.depth > -3
+)
+
+SELECT a.id, p.id as parent, cte.depth, cte.path, cte.path_ids, cte.account_id, cte.parent_id FROM cte
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
+
 
 
 
@@ -189,21 +269,21 @@ a3		-3	d3,c4,b3,a3	19,14,7,3	3
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth, CAST(a.name AS CHAR(200)) as path, CAST(a.id AS CHAR(200)) as path_ids FROM account_parents 
-  join accounts a on a.id = account_id
+  SELECT account_id, parent_id, 0 as depth, CAST(a.id AS CHAR(200)) as path, CAST(a.id AS CHAR(200)) as path_ids FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
   WHERE account_id  = 21 -- 21 = d5
 
   UNION ALL
 
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id, cte.depth + 1, CONCAT(cte.path, ",", a.name) , CONCAT(cte.path_ids, ",", a.id)FROM account_parents c 
-  join accounts a on a.id = c.account_id
+  SELECT c.account_id, c.parent_id, cte.depth + 1, CONCAT(cte.path, ",", a.id) , CONCAT(cte.path_ids, ",", a.id)FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
    JOIN cte ON c.parent_id=cte.account_id --  # find children
 )
 
-SELECT a.name, p.name as parent, cte.depth, cte.path, cte.path_ids, cte.account_id, cte.parent_id FROM cte
-join accounts a on a.id = cte.account_id
-left join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, cte.depth, cte.path, cte.path_ids, cte.account_id, cte.parent_id FROM cte
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
 
 -- returns
 d5	c5	0	d5	21	21	15
@@ -223,22 +303,22 @@ h1	g1	4	d5,e2,f2,g1,h1	21,25,28,29,30	30	29
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth, CAST(a.name AS CHAR(200)) as path, CAST(a.id AS CHAR(200)) as path_ids FROM account_parents 
-  join accounts a on a.id = account_id
+  SELECT account_id, parent_id, 0 as depth, CAST(a.id AS CHAR(200)) as path, CAST(a.id AS CHAR(200)) as path_ids FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
   WHERE account_id  = 21 -- 21 = d5
 
   UNION ALL
 
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id, cte.depth + 1, CONCAT(cte.path, ",", a.name) , CONCAT(cte.path_ids, ",", a.id)FROM account_parents c 
-  join accounts a on a.id = c.account_id
+  SELECT c.account_id, c.parent_id, cte.depth + 1, CONCAT(cte.path, ",", a.id) , CONCAT(cte.path_ids, ",", a.id)FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
    JOIN cte ON c.parent_id=cte.account_id --  # find children
    where depth = 0
 )
 
-SELECT a.name, p.name as parent, cte.depth, cte.path, cte.path_ids, cte.account_id, cte.parent_id FROM cte
-join accounts a on a.id = cte.account_id
-left join accounts p on p.id = cte.parent_id
+SELECT a.id, p.id as parent, cte.depth, cte.path, cte.path_ids, cte.account_id, cte.parent_id FROM cte
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
 
 -- returns 
 d5	c5	0	d5	21	21	15
@@ -256,22 +336,22 @@ from (
 WITH RECURSIVE cte AS
 (
   -- # seed SELECT
-  SELECT account_id, parent_id, 0 as depth, CAST(a.name AS CHAR(200)) as path FROM account_parents 
-  join accounts a on a.id = account_id
+  SELECT account_id, parent_id, 0 as depth, CAST(a.id AS CHAR(200)) as path FROM ai_accounts_parents 
+  join ai_accounts a on a.id = account_id
   WHERE parent_id = 1
 
   UNION ALL
 
   -- # recursive SELECT
-  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", a.name) FROM account_parents c 
-  join accounts a on a.id = c.account_id
+  SELECT c.account_id, c.parent_id,cte.depth + 1, CONCAT(cte.path, ",", a.id) FROM ai_accounts_parents c 
+  join ai_accounts a on a.id = c.account_id
    JOIN cte ON cte.account_id=c.parent_id --  # find children
 )
 
 -- SELECT distinct depth,  cte.accoun t_id FROM cte
 SELECT  depth FROM cte
-join accounts a on a.id = cte.account_id
-left join accounts p on p.id = cte.parent_id
+join ai_accounts a on a.id = cte.account_id
+left join ai_accounts p on p.id = cte.parent_id
 group by account_id, depth
 
 )x group by x.depth
@@ -295,4 +375,11 @@ moving a node, just requires
 1. delete existing rows where parent is old parent
 2. add row with new parent id
 children remain uneffected
+
+When traversing large hierarchies, the number of nodes per level can grow exponentially as found in my test generation tool.
+One idea would be to progress X levels, return that data, start again from that last level. Idea is that db deals with smaller set of data and we append it together later. Would a stored proc be better?
+
+Given a specific node, return all related nodes x levels above and below it
+We may also want to use distance radius as well or account types
+
 

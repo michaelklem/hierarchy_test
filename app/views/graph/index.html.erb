@@ -113,7 +113,8 @@ var nodes_str = $('#nodes').text()
 var nodes = JSON.parse( nodes_str )
 var new_states = {}
 for (var i =0; i < nodes.length; i++) {
-  new_states[ nodes[i] ] = { description: ''}
+  var node_type = nodes[i][1]
+  new_states[ nodes[i][0] ] = {  description: node_type, style: "fill: " + get_fill_color( node_type)}
 }
 
 states = new_states
@@ -132,7 +133,9 @@ var edges = JSON.parse( edges_str )
 var new_states = {}
 for (var i =0; i < edges.length; i++) {
   var temp = edges[i]
-  g.setEdge( temp.parent_id, temp.account_id, {})
+  if (temp.parent_id !== null) {
+    g.setEdge( temp.parent_id, temp.account_id, {})
+  }
 }
 
 
@@ -177,7 +180,7 @@ svg.call(zoom);
 // Simple function to style the tooltip for the given node.
 
 var styleTooltip = function(name, description) {
-  return "<p class='name'>" + name + "</p><p class='description'>" + description + "</p>";
+  return "<p class='name'>" + name + "</p><p class='description'>Account Type: " + description + "</p>";
 };
 
 
@@ -195,7 +198,22 @@ svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph(
 svg.attr('height', g.graph().height * initialScale + 40);
   }
  
-
+function get_fill_color(node_type)
+{
+  switch(node_type) {
+    case 1: return 'red' 
+    case 2: return 'yellow' 
+    case 3: return 'green'
+    case 4: return 'white'
+    case 5: return 'pink'
+    case 6: return 'orange'
+    case 7: return 'lightgreen'
+    case 8: return 'lightblue'
+    case 9: return 'salmon'
+    case 10: return 'lightpurple'
+  }
+  
+}
   function dagre_test() {
 // Create a new directed graph
 var g = new dagreD3.graphlib.Graph().setGraph({});

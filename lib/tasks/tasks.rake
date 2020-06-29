@@ -1,6 +1,6 @@
 # bundle exec rake generate_accounts
 task generate_accounts: :environment do
-  rows_to_generate = 20
+  rows_to_generate = 25
   rows_to_generate.times do |i|
     generate_nodes(i, 2, 10)
   end
@@ -11,7 +11,7 @@ def generate_nodes(level, min, max)
   number_to_generate = rand(min..max)
   puts "generating #{number_to_generate} nodes at level #{level}"
   number_to_generate.times do |i|
-    AiAccount.create( name: generate_name, level: level )
+    AiAccount.create( name: generate_name, level: level, account_type: rand(1..10) )
   end
 end
 
@@ -22,7 +22,7 @@ end
 
 # bundle exec rake generate_account_relationships
 task generate_account_relationships: :environment do 
-  rows_to_generate = 10
+  rows_to_generate = 20
   (rows_to_generate-1).times do |i|
     generate_links(i, i+1)
   end
@@ -50,12 +50,22 @@ def generate_root_links(p, c)
   puts "  root links p #{number_of_p}"
   puts "  root links c #{number_of_c}"
 
+
   c.each do |child|
     rando_index = rand(0..(number_of_p-1))
     random_p = p[ rando_index  ]
     puts "link from child #{child.id} to parent #{random_p.id}"
     begin
       AiAccountParent.create(account_id: child.id, parent_id: random_p.id)
+    rescue
+    end
+  end
+
+  # Add the parent nodes to the ai_account_parent table with null parent
+  p.each do |parent|
+    puts "link from parent #{parent.id} to null"
+    begin
+      AiAccountParent.create(account_id: parent.id, parent_id: nil)
     rescue
     end
   end
