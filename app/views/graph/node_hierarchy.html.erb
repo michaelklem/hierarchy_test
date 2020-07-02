@@ -21,68 +21,78 @@
     function init() {
       var node_id = $('#node_id').val();
       node_id = parseInt(node_id)
-      $.get('/node_data/' + node_id, function(results){
-        var data = results.nodes
-        console.log('reuslts ' + JSON.stringify(data) )
-
-        // Create a new directed graph
-        var g = new dagreD3.graphlib.Graph().setGraph({});
- 
-
-        generate_nodes(g, data, node_id)
-        //generate_links(g, results.edges, results.uniq_nodes, results.node_ids)
-        generate_links2(g, data, results.edges, results.uniq_nodes, results.node_ids)
-     
-
-        // Create the renderer
-        var render = new dagreD3.render();
-
-        // Set up an SVG group so that we can translate the final graph.
-        var svg = d3.select("svg"),
-            inner = svg.append("g");
-
-        // Set up zoom support
-        var zoom = d3.zoom()
-            .on("zoom", function() {
-              inner.attr("transform", d3.event.transform);
-            });
-        svg.call(zoom);
-
-
-        // Simple function to style the tooltip for the given node.
-
-        var styleTooltip = function(name, description) {
-          return "<p class='name'>" + name + "</p><p class='description'>Account Type: " + description + "</p>";
-        };
-
-
-        // Run the renderer. This is what draws the final graph.
-        render(inner, g);
-
-        inner.selectAll("g.node")
-          .attr("title", function(v) { return styleTooltip(v, g.node(v).description) })
-          .each(function(v) { $(this).tipsy({ gravity: "w", opacity: 1, html: true }); });
-
-        
-        inner.selectAll("g.node").on("click", function(d,i) {
-            console.log("on click account id: " + d + ' ' + i); 
-        });
-
-        // Center the graph
-        var initialScale = 0.70;
-        svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
-
-        svg.attr('height', g.graph().height * initialScale + 40);
-          
-        
-      })
+      get_node_data(node_id);
     }
 
+    var g=null;
+
+    function get_node_data(node_id) {
+      $.get('/node_data/' + node_id, function(results){
+              var data = results.nodes
+              //console.log('reuslts ' + JSON.stringify(data) )
+
+              // clean up the ui 
+              $(".tipsy").remove(); // tips
+              d3.selectAll("svg > *").remove() // the graph
+
+              // Create a new directed graph
+              g = new dagreD3.graphlib.Graph().setGraph({});
+      
+
+              generate_nodes(g, data, node_id)
+              generate_links2(g, data, results.edges, results.uniq_nodes, results.node_ids)
+          
+
+              // Create the renderer
+              var render = new dagreD3.render();
+
+              // Set up an SVG group so that we can translate the final graph.
+              var svg = d3.select("svg"),
+                  inner = svg.append("g");
+
+              // Set up zoom support
+              var zoom = d3.zoom()
+                  .on("zoom", function() {
+                    inner.attr("transform", d3.event.transform);
+                  });
+              svg.call(zoom);
+
+
+              // Simple function to style the tooltip for the given node.
+
+              var styleTooltip = function(name, description) {
+                return "<p class='name'>" + name + "</p><p class='description'>Account Type: " + description + "</p>";
+              };
+
+
+              // Run the renderer. This is what draws the final graph.
+              render(inner, g);
+
+              inner.selectAll("g.node")
+                .attr("title", function(v) { return styleTooltip(v, g.node(v).description) })
+                .each(function(v) { $(this).tipsy({ gravity: "w", opacity: 1, html: true }); });
+
+              
+              inner.selectAll("g.node").on("click", function(d,i) {
+                  console.log("on click account id: " + d + ' ' + i); 
+                  get_node_data( parseInt(d) )
+              });
+
+              // Center the graph
+              var initialScale = 0.70;
+              svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+
+              svg.attr('height', g.graph().height * initialScale + 40);
+                
+              
+            })
+      }
+    
     function generate_nodes(g, nodes, node_id) {
       var states = {}
       for (var i =0; i < nodes.length; i++) {
         var node = nodes[i]
-        console.log( JSON.stringify(node))
+        //onsole.log( JSON.stringify(node))
         states[ node.account_id ] = {  description: node.account_type, style: "fill: " + get_fill_color( node.account_type )}
 
         if (node_id === node.account_id) {
@@ -101,43 +111,20 @@
     }
 
     function generate_links2(g, nodes, edges, uniq_node_ids, node_ids) {
-      console.log('uniq_node_ids: ' + uniq_node_ids)
-      console.log('node_ids: ' + node_ids)
+      //console.log('uniq_node_ids: ' + uniq_node_ids)
+      //console.log('node_ids: ' + node_ids)
       
       for (var i =0; i < nodes.length; i++) {
           var node = nodes[i]
-          console.log(i + ' = edge: ' + JSON.stringify(node) )
-          console.log('0001111: ' + node.account_id)
-          console.log('1111: ' + node_ids.includes(node.account_id))
-          console.log('2222: ' + node_ids.includes(node.parent_id))
           //if ([22936,22932,22934,22935,22937,22938,22939,22940,22942,22943].includes(node.account_id)) {
           if (node_ids.includes(node.account_id) && node_ids.includes(node.parent_id)) {
-            console.log('edge: ' + JSON.stringify(node) )
+            //console.log('edge: ' + JSON.stringify(node) )
            g.setEdge( node.parent_id, node.account_id, {})
           }
       } 
          
     }
     
-    function generate_links(g, edges, uniq_node_ids, node_ids) {
-      console.log('uniq_node_ids: ' + uniq_node_ids)
-      console.log('node_ids: ' + node_ids)
-      
-      for (var i =0; i < edges.length; i++) {
-          var node = edges[i]
-          console.log(i + ' = edge: ' + JSON.stringify(node) )
-          console.log('1111: ' + uniq_node_ids.includes(node.account_id))
-          console.log('2222: ' + uniq_node_ids.includes(node.parent_id))
-          //if (node.parent_id !== null && (uniq_node_ids.includes(node.parent_id) || uniq_node_ids.includes(node.account_id)) ) {
-          //if (uniq_node_ids.includes(node.parent_id) && uniq_node_ids.includes(node.account_id)) {
-          if ([22936,22932,22934,22935,22937,22938,22939,22940,22942,22943].includes(node.account_id)) {
-          //if (uniq_node_ids.includes(node.account_id) && uniq_node_ids.includes(node.parent_id)) {
-            console.log('edge: ' + JSON.stringify(node) )
-            g.setEdge( node.parent_id, node.account_id, {})
-          }
-      } 
-         
-    }
 
 function get_fill_color(node_type)
 {
