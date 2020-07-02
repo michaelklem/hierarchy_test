@@ -2,6 +2,35 @@ class AiAccount < ApplicationRecord
   has_many :parents, primary_key: 'id',  foreign_key: 'parent_id', class_name: 'AiAccountParent'
   has_many :children, primary_key: 'id',  foreign_key: 'account_id', class_name: 'AiAccountParent'
 
+  def self.all_with_links
+    # My hierachy generator currently does not insert all root nodes
+    # in the ai_accounts_parents table so I use this query logic to 
+    # find all nodes. Basically if the account id exists in either 
+    # column, it is a node that should be displayed. Some nodes
+    # are generated as orphans so we want to exclude those. 
+    sql = "
+	select distinct a.id, a.account_type from ai_accounts a
+	     join ai_accounts_parents aap on aap.parent_id = a.id
+	union
+	select distinct a.id, a.account_type from ai_accounts a
+	     join ai_accounts_parents aap2 on aap2.account_id = a.id
+	    "
+
+    sql4 = "select distinct a.id, a.account_type from ai_accounts a
+	    left join ai_accounts_parents aap on aap.parent_id = a.id
+	    left join ai_accounts_parents aap2 on aap2.account_id = a.id
+      "
+    sql3 = "select distinct a.id, a.account_type from ai_accounts a
+	    join ai_accounts_parents aap on aap.parent_id = a.id"
+
+    sql2 = "SELECT
+	 a2.id, a2.account_type
+FROM
+	classicmodels.ai_accounts_parents a1
+	join ai_accounts a2 on a2.id = a1.parent_id"
+    v = self.connection.select_rows(sql)
+    v
+  end
 
   def self.get_parent_child_nodes(node_id, depth = 5, type = nil)
     parent_depth = -depth # need a negative value for parents

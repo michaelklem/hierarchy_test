@@ -26,6 +26,22 @@ task generate_account_relationships: :environment do
   (rows_to_generate-1).times do |i|
     generate_links(i, i+1)
   end
+
+  add_nodes_as_roots
+end
+
+# We need to go through each node, and add a new row in the parents table
+# to indicate the row is a parent.
+# Basically, each parent node id should also be found in the table in the account id column with a null parent id.
+def add_nodes_as_roots
+  puts "in add nodes as roots"
+  nodes = AiAccountParent.get_root_nodes
+  nodes.each do |id|
+    begin
+      AiAccountParent.create(account_id: id, parent_id: nil)
+    rescue 
+    end
+  end
 end
 
 def generate_links(parent_level, child_level)

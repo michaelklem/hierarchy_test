@@ -17,7 +17,6 @@
 
 
     $( document ).ready(function() {
-      // dracula_test();
       //dagre_test()
       //dagre_test2()
       dagre_test3()
@@ -134,7 +133,10 @@ var new_states = {}
 for (var i =0; i < edges.length; i++) {
   var temp = edges[i]
   if (temp.parent_id !== null) {
-    g.setEdge( temp.parent_id, temp.account_id, {})
+    //if (i < 46) {
+      console.log(i + ' = p: ' + temp.parent_id + ' a: ' + temp.account_id)
+      g.setEdge( temp.parent_id, temp.account_id, {})
+    //}
   }
 }
 

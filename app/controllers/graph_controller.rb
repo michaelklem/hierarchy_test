@@ -1,6 +1,7 @@
 class GraphController < ApplicationController
   def index
-    @nodes = AiAccount.all.pluck(:id, :account_type)
+    @nodes = AiAccount.all_with_links
+    # @nodes = AiAccount.all.pluck(:id, :account_type)
     @edges = AiAccountParent.all
   end
 
