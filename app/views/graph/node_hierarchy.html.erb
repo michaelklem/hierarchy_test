@@ -17,48 +17,14 @@
     });
 
     function init() {
-      var node_id = 22930
+      var node_id = 22936
       $.get('node_data/' + node_id, function(results){
         var data = results.nodes
         console.log('reuslts ' + JSON.stringify(data) )
 
         // Create a new directed graph
         var g = new dagreD3.graphlib.Graph().setGraph({});
-        
-/*
-var nodes = results.nodes
-var new_states = {}
-for (var i =0; i < nodes.length; i++) {
-console.log( 'node: ' + nodes[i])
-  var node_type = nodes[i][1]
-  new_states[ nodes[i][0] ] = {  description: node_type, style: "fill: " + get_fill_color( node_type)}
-}
-
-var states = new_states
-
-// Add states to the graph, set labels, and style
-Object.keys(states).forEach(function(state) {
-  var value = states[state];
-  value.label = state;
-  value.rx = value.ry = 5;
-  g.setNode(state, value);
-});
-
-var uniq_node_ids = results.uniq_nodes
-  console.log( 'uniq_node_ids: ' + uniq_node_ids )
-
-var edges = results.edges
-var new_states = {}
-for (var i =0; i < edges.length; i++) {
-  var temp = edges[i]
-  console.log( 'edge: ' + JSON.stringify(temp) )
-
-  if (temp.parent_id !== null || (! uniq_node_ids.includes(temp.parent_id)) ) {
-    g.setEdge( temp.parent_id, temp.account_id, {})
-  }
-}
-*/
-
+ 
 
         generate_nodes(g, data, node_id)
         //generate_links(g, results.edges, results.uniq_nodes, results.node_ids)
@@ -111,7 +77,8 @@ for (var i =0; i < edges.length; i++) {
         states[ node.account_id ] = {  description: node.account_type, style: "fill: " + get_fill_color( node.account_type )}
 
         if (node_id === node.account_id) {
-          states[ node.parent_id ] = {  description: node.parent_id, style: "fill: " + get_fill_color( node.account_type )}
+          states[ node.account_id ] = {  description: node.parent_id, style: "stroke-width:3px; fill: " + get_fill_color( node.account_type )}
+          console.log('sdfsd')
         }
       }
 
