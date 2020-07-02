@@ -133,10 +133,7 @@ var new_states = {}
 for (var i =0; i < edges.length; i++) {
   var temp = edges[i]
   if (temp.parent_id !== null) {
-    //if (i < 46) {
-      console.log(i + ' = p: ' + temp.parent_id + ' a: ' + temp.account_id)
-      g.setEdge( temp.parent_id, temp.account_id, {})
-    //}
+    g.setEdge( temp.parent_id, temp.account_id, {})
   }
 }
 
