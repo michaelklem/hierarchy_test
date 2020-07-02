@@ -1,8 +1,8 @@
 # bundle exec rake generate_accounts
 task generate_accounts: :environment do
-  rows_to_generate = 25
+  rows_to_generate = 200
   rows_to_generate.times do |i|
-    generate_nodes(i, 2, 10)
+    generate_nodes(i, 2, 30)
   end
 
 end
@@ -22,7 +22,7 @@ end
 
 # bundle exec rake generate_account_relationships
 task generate_account_relationships: :environment do 
-  rows_to_generate = 20
+  rows_to_generate = 200
   (rows_to_generate-1).times do |i|
     generate_links(i, i+1)
   end

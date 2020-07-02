@@ -1,3 +1,5 @@
+ <input type='hidden' id='node_id' value=<%= @node_id %> >
+
  <div class="row svgrow">
 
         <svg  version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="00 000 10000 1000">
@@ -17,8 +19,9 @@
     });
 
     function init() {
-      var node_id = 22953
-      $.get('node_data/' + node_id, function(results){
+      var node_id = $('#node_id').val();
+      node_id = parseInt(node_id)
+      $.get('/node_data/' + node_id, function(results){
         var data = results.nodes
         console.log('reuslts ' + JSON.stringify(data) )
 
@@ -83,7 +86,7 @@
         states[ node.account_id ] = {  description: node.account_type, style: "fill: " + get_fill_color( node.account_type )}
 
         if (node_id === node.account_id) {
-          states[ node.account_id ] = {  description: node.parent_id, style: "stroke-width:3px; fill: " + get_fill_color( node.account_type )}
+          states[ node.account_id ] = {  description: node.parent_id, style: "stroke-width:6px; fill: " + get_fill_color( node.account_type )}
         }
       }
 

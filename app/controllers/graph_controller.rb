@@ -6,6 +6,8 @@ class GraphController < ApplicationController
   end
 
   def node_hierarchy
+    Rails.logger.info "PPPPP #{params[:node_id]}"
+    @node_id = params[:node_id]
   end
 
   def node_hierarchy_data
