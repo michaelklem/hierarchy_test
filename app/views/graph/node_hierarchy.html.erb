@@ -17,7 +17,7 @@
     });
 
     function init() {
-      var node_id = 22936
+      var node_id = 22953
       $.get('node_data/' + node_id, function(results){
         var data = results.nodes
         console.log('reuslts ' + JSON.stringify(data) )
@@ -45,6 +45,7 @@
             });
         svg.call(zoom);
 
+
         // Simple function to style the tooltip for the given node.
 
         var styleTooltip = function(name, description) {
@@ -58,6 +59,11 @@
         inner.selectAll("g.node")
           .attr("title", function(v) { return styleTooltip(v, g.node(v).description) })
           .each(function(v) { $(this).tipsy({ gravity: "w", opacity: 1, html: true }); });
+
+        
+        inner.selectAll("g.node").on("click", function(d,i) {
+            console.log("on click account id: " + d + ' ' + i); 
+        });
 
         // Center the graph
         var initialScale = 0.70;
@@ -78,7 +84,6 @@
 
         if (node_id === node.account_id) {
           states[ node.account_id ] = {  description: node.parent_id, style: "stroke-width:3px; fill: " + get_fill_color( node.account_type )}
-          console.log('sdfsd')
         }
       }
 
