@@ -150,26 +150,26 @@ var allnodessel = allnodes.select("g.nodes title");     /* node box*/
 var labelsel = svg.selectAll("g.nodes text");           /* select the labels instead the frame of the labels */
       node
 	   .on("mouseover",function(d,id){
-      console.log('node over')
-	       allpathes.style("opacity", 0.2);                                     //hide all pathes
-	       allnodes.style("opacity", 0.2);                                      //hide all nodes
-		   edgelabels.style("opacity", 0.2);                                    //hide all link labels  
-   	       var elemtosearch = d; 
-		   var testit = g.nodeEdges(d);
-		   var selectit = g.neighbors(d);	   
-		   allpathes.each(function(d,id){                                       //search all pathes
-              var i;
-			  for (i = 0; i < testit.length; i++){                              // in testit we have all neighbors of the actual node     
-			     if ((testit[i].w == d.w && elemtosearch == d.w) || (testit[i].v == d.v && elemtosearch == d.v)) {                                      //if the child is the actual hovered make it visibile 
-				    var labelfound = id
-					d3.select(this).style("opacity",1);
-                    edgelabels.each(function(d,id){
-					    if (labelfound == id) d3.select(this).style("opacity", 1);   
-					})
-				 }  
-			  }
-		   })
-           allnodes.each(function(d,id){ 
+        allpathes.style("opacity", 0.2);                                     //hide all pathes
+        allnodes.style("opacity", 0.2);                                      //hide all nodes
+        edgelabels.style("opacity", 0.2);                                    //hide all link labels  
+        var elemtosearch = d; 
+        var testit = g.nodeEdges(d);
+        var selectit = g.neighbors(d);	   
+        allpathes.each(function(d,id){                                       //search all pathes
+          var i;
+          for (i = 0; i < testit.length; i++){                              // in testit we have all neighbors of the actual node     
+            if ((testit[i].w == d.w && elemtosearch == d.w) || (testit[i].v == d.v && elemtosearch == d.v)) {                                      //if the child is the actual hovered make it visibile 
+              var labelfound = id
+              d3.select(this).style("opacity",1);
+              edgelabels.each(function(d,id){
+                if (labelfound == id) d3.select(this).style("opacity", 1);   
+              })
+            }  
+          }
+		    })
+        
+        allnodes.each(function(d,id){ 
 //	          testit.each(function(d){ 
 			  var i;
 			  for (i = 0; i < d.length; i++){
@@ -181,8 +181,6 @@ var labelsel = svg.selectAll("g.nodes text");           /* select the labels ins
 		   })
 	   })
 	   .on("mouseout",function(d,id){
-           console.log('node out')
-
 		   allnodes.style("opacity", 1);                                      // 
 		   allpathes.style("opacity", 1);
 		   edgelabels.style("opacity", 1); 
