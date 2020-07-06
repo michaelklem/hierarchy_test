@@ -72,9 +72,15 @@
                 .attr("title", function(v) { return styleTooltip(v, g.node(v).description) })
                 .each(function(v) { $(this).tipsy({ gravity: "w", opacity: 1, html: true }); });
 
-              
+
+              inner.selectAll("g.node").on("mouseover", function(d,i) {
+                  var nodes = g.predecessors(d)
+                  console.log("on mouse account id: " + nodes); 
+              });
+
               inner.selectAll("g.node").on("click", function(d,i) {
                   console.log("on click account id: " + d + ' ' + i); 
+                  
                   get_node_data( parseInt(d) )
               });
 

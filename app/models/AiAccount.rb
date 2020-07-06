@@ -71,7 +71,7 @@ FROM
     v
   end
 
-  def self.get_parent_child_nodes(node_ids, depth = 5, type = nil)
+  def self.get_parent_child_nodes(node_id, depth = 5, type = nil)
     parent_depth = -depth # need a negative value for parents
 
     sql = "
