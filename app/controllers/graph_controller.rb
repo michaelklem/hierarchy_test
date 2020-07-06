@@ -39,7 +39,7 @@ class GraphController < ApplicationController
   end
 
   def node_hierarchy_data
-    @nodes = AiAccount.get_parent_child_nodes( params['node_id'], 2, nil)
+    @nodes = AiAccount.get_parent_child_nodes( params['node_id'], 5, nil)
     # @nodes = AiAccount.get_child_nodes( params['node_id'], 1, nil)
     # Rails.logger.info "NODES: #{@nodes.to_json}"
     uniq_nodes1 = @nodes.map{|x| x['account_id']}.uniq

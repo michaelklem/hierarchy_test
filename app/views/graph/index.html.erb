@@ -26,6 +26,7 @@
 
 
 var g = null;
+var svg = null;
   function dagre_test3() {
 // Create a new directed graph
 g = new dagreD3.graphlib.Graph().setGraph({});
@@ -96,7 +97,7 @@ g.setEdge("a2",  "b1",     {  });
 var render = new dagreD3.render();
 
 // Set up an SVG group so that we can translate the final graph.
-var svg = d3.select("svg"),
+ svg = d3.select("svg"),
     inner = svg.append("g");
 
 // Set up zoom support
@@ -125,8 +126,51 @@ var initialScale = 0.70;
 svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
 
 svg.attr('height', g.graph().height * initialScale + 40);
+
+mouse_over_effect(svg)
+  }
+
+  function mouse_over_effect(svg) {
+    highlight_edges(svg)
   }
  
+  function highlight_edges(svg) {
+
+//highlight edges
+  var edgelabels = svg.selectAll(".edgeLabel");
+  var allnodes = svg.selectAll("g.nodes rect");
+  var testpath = d3.selectAll('g.edgePath path');
+  var onmousepath = d3.selectAll('g.edgePath');
+   var allpathes = onmousepath.select('.path');
+   allpathes
+      .on("mouseout",function(d,id){
+		 edgelabels.style("opacity", 1);
+	     allpathes.style("opacity", 1);       /* set all edges to opacity 1 */
+         allnodes.style("opacity", 1);       /* set all nodes visibillity */
+		 })
+      .on("mouseover",function(d,id){
+	  	 var labellikepath = id;
+	     edgelabels.style("opacity", 0.2);
+         allpathes.style("opacity", 0.2);      /* set all edges opacity 0.2 */
+		 allnodes.style("opacity", 0.2); 
+		 edgelabels.each(function(d,id){                     /* first path is the first label, second path second label, etc.. */
+		    if (id === labellikepath) {
+			   d3.select(this).style("opacity", 1);
+            }
+		 })	
+	     d3.select(this).style("opacity", 1);    /*  just set the actual edge to opacity 1 */
+		 var par = d.v
+		 var chi = d.w
+		 allnodes.each(function(d,id){
+		    var i;
+			for (i = 0; i < d.length; i++){
+                if (par == d) d3.select(this).style("opacity",1);   //make alle neighbors visible 
+			    if (chi == d) d3.select(this).style("opacity",1);
+				}
+			})
+		 });
+	}
+
 function get_fill_color(node_type)
 {
   switch(node_type) {
@@ -262,7 +306,7 @@ g.setEdge("a2",  "b1",     {  });
 var render = new dagreD3.render();
 
 // Set up an SVG group so that we can translate the final graph.
-var svg = d3.select("svg"),
+ svg = d3.select("svg"),
     inner = svg.append("g");
 
 // Set up zoom support
@@ -402,7 +446,7 @@ g.setEdge("TIME WAIT",  "CLOSED",     { label: "timeout=2MSL" });
 var render = new dagreD3.render();
 
 // Set up an SVG group so that we can translate the final graph.
-var svg = d3.select("svg"),
+ svg = d3.select("svg"),
     inner = svg.append("g");
 
 // Set up zoom support
