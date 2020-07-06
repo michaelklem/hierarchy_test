@@ -26,9 +26,24 @@
 
     var g=null;
 
+    // based on new nodes returned from ajax, return only those that are not already in the graph.
+    function nodes_to_add(new_nodes) {
+      var results = [];
+      for (var i=0; i < new_nodes.length; i++) {
+        if (g.node( new_nodes[i].account_id ) === undefined) {
+         results.push( new_nodes[i])
+         console.log('adding node: ' + new_nodes[i].account_id)
+        }
+      }
+
+      return results
+    }
+
+
     function get_node_data(node_id) {
       $.get('/node_data/' + node_id, function(results){
               var data = results.nodes
+              gClickedOnNode = node_id
               //console.log('reuslts ' + JSON.stringify(data) )
 
               // clean up the ui 
@@ -79,9 +94,9 @@
               });
 
               inner.selectAll("g.node").on("click", function(d,i) {
-                  console.log("on click account id: " + d + ' ' + i); 
+                  console.log("on click 3account id: " + d + ' ' + i); 
                   
-                  get_node_data( parseInt(d) )
+                  get_node_data_on_click( parseInt(d) )
               });
 
               // Center the graph
@@ -94,6 +109,133 @@
             })
       }
     
+
+    function update_node_class(node_id, new_class) {
+                var n = g.node( node_id )
+                var in_edges = g.inEdges(node_id)
+                var out_edges = g.outEdges(node_id)
+                g.removeNode(node_id)
+
+                if (new_class === '') {
+                  g.setNode( node_id, {  description: '', style: n.style} )
+                }
+                else {
+                  g.setNode( node_id, {  description: '', class: new_class, style: n.style} )
+                }
+                
+                for (var i=0;i < in_edges.length; i++) {
+                    var t = in_edges[i]
+                  g.setEdge( t.v, t.w, {})
+                }
+                for (var i=0;i < out_edges.length; i++) {
+                    var t = out_edges[i]
+                  g.setEdge( t.v, t.w, {})
+                }
+    
+    }
+    
+    var gClickedOnNode = null;
+
+    function get_node_data_on_click(node_id) {
+      console.log('get_node_data_on_click')
+
+      $.get('/node_data/' + node_id, function(results){
+        console.log('get_node_data_on_click results')
+              var data = results.nodes
+              // 1 == parent
+              if (results.nodes.length === 1) {
+                alert('No children found for this node')
+              }
+              //console.log('reuslts ' + JSON.stringify(data) )
+              console.log('gClickedOnNode: ' + gClickedOnNode)
+              if (gClickedOnNode !== null ) {
+                update_node_class(gClickedOnNode, '')
+                gClickedOnNode = node_id
+              }
+              else {
+                gClickedOnNode = node_id
+              }
+
+              update_node_class(node_id, 'selected_node')
+
+              // clean up the ui 
+              var new_nodes = nodes_to_add(results.nodes)
+              // only keep the nodes we will deal with
+              console.log('nodes_to_add: ' + new_nodes)
+
+              $(".tipsy").remove(); // tips
+              d3.selectAll("svg > *").remove() // the graph
+
+              
+              if (new_nodes.length > 0) {
+                generate_nodes(g, new_nodes, node_id)
+                generate_links2(g, data, results.edges, results.uniq_nodes, results.node_ids)
+              }
+
+              // are we at the last child?
+              if (g.successors(node_id).length === 0) {
+                alert('No children found')
+              }
+
+              // are we at the last child?
+              if (g.predecessors(node_id).length === 0) {
+                alert('No parents found')
+              }
+
+              // Create the renderer
+              var render = new dagreD3.render();
+
+              // Set up an SVG group so that we can translate the final graph.
+              var svg = d3.select("svg"),
+                  inner = svg.append("g");
+
+              // Set up zoom support
+              var zoom = d3.zoom()
+                  .on("zoom", function() {
+                    inner.attr("transform", d3.event.transform);
+                  });
+              svg.call(zoom);
+
+
+              // Simple function to style the tooltip for the given node.
+
+              var styleTooltip = function(name, description) {
+                return "<p class='name'>" + name + "</p><p class='description'>Account Type: " + description + "</p>";
+              };
+
+
+              // Run the renderer. This is what draws the final graph.
+              render(inner, g);
+
+              inner.selectAll("g.node")
+                .attr("title", function(v) { return styleTooltip(v, g.node(v).description) })
+                .each(function(v) { $(this).tipsy({ gravity: "w", opacity: 1, html: true }); });
+
+
+              inner.selectAll("g.node").on("mouseover", function(d,i) {
+                  var nodes = g.predecessors(d)
+                  console.log("on mouse account id: " + nodes); 
+              });
+
+              inner.selectAll("g.node").on("click", function(d,i) {
+                  console.log("on click2 account id: " + d + ' ' + i); 
+                  
+                  get_node_data_on_click( parseInt(d) )
+              });
+
+              // Center the graph
+              var initialScale = 0.70;
+              svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+
+              // svg.attr('height', g.graph().height * initialScale + 40);
+
+              var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
+              inner.attr("transform", "translate(" + xCenterOffset + ", 20)");
+              svg.attr("height", g.graph().height + 40);                
+              
+            })
+      }
+    
     function generate_nodes(g, nodes, node_id) {
       var states = {}
       for (var i =0; i < nodes.length; i++) {
@@ -102,7 +244,7 @@
         states[ node.account_id ] = {  description: node.account_type, style: "fill: " + get_fill_color( node.account_type )}
 
         if (node_id === node.account_id) {
-          states[ node.account_id ] = {  description: node.parent_id, style: "stroke-width:6px; fill: " + get_fill_color( node.account_type )}
+          states[ node.account_id ] = {  description: node.parent_id, class: 'selected_node', style: "fill: " + get_fill_color( node.account_type )}
         }
       }
 
