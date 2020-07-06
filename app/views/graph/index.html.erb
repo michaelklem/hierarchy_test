@@ -10,6 +10,7 @@
 
 
 <div style='display:none;' id='nodes'><%= @nodes.to_json %></div>
+<div style='display:none;' id='node_ids'><%= @node_ids.to_json %></div>
 <div style='display:none;' id='edges'><%= @edges.to_json %></div>
 
 <% content_for :javascript do %>
@@ -50,12 +51,18 @@ Object.keys(states).forEach(function(state) {
 });
 
 
+//var node_ids_str = $('#node_ids').text()
+//var node_ids = JSON.parse( node_ids_str )
+
+
 var edges_str = $('#edges').text()
 var edges = JSON.parse( edges_str )
 var new_states = {}
 for (var i =0; i < edges.length; i++) {
   var temp = edges[i]
+//  if (temp.parent_id !== null && (node_ids.includes(temp.parent_id))) {
   if (temp.parent_id !== null) {
+    //console.log('par: ' + temp.parent_id + ' a: ' + temp.account_id)
     g.setEdge( temp.parent_id, temp.account_id, {})
   }
 }
