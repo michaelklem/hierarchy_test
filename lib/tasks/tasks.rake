@@ -1,8 +1,8 @@
 # bundle exec rake generate_accounts
 task generate_accounts: :environment do
-  rows_to_generate = 100
+  rows_to_generate = 20
   rows_to_generate.times do |i|
-    generate_nodes(i, 2, 30)
+    generate_nodes(i, 2, 10)
   end
 
 end
@@ -22,12 +22,29 @@ end
 
 # bundle exec rake generate_account_relationships
 task generate_account_relationships: :environment do 
-  rows_to_generate = 30
+  rows_to_generate = 12
   (rows_to_generate-1).times do |i|
     generate_links(i, i+1)
   end
 
   add_nodes_as_roots
+end
+
+# bundle exec rake generate_root_paths
+task generate_root_paths: :environment do 
+  nodes = AiAccountParent.get_root_nodes
+  puts "#{nodes.to_json}"
+  # puts "#{nodes[0]}"
+  nodes.each do |n|
+    results = AiAccountParent.calc_hierarchy_from_root( n )
+    results.each do |r|
+      puts "#{r['id']}, #{r['account_id']}, #{r['parent_id']}, #{r['path']}"
+      # a = AiAccountParent.find( r['id'] )
+      b = AiAccountParentPath.create( account_id: r['account_id'], root_path: r['path'] )
+      # a.root_path = r['path'] 
+      # a.save 
+    end
+  end
 end
 
 # We need to go through each node, and add a new row in the parents table
@@ -89,11 +106,17 @@ def generate_root_links(p, c)
   p.each do |parent|
     rando_index = rand(0..(number_of_c-1))
     random_c = c[ rando_index ]
-    puts "link from parent #{parent.id} to child #{random_c.id}"
+    puts "link from parent 2: #{parent.id} to child #{random_c.id}"
     begin
       AiAccountParent.create(account_id: random_c.id, parent_id: parent.id)
     rescue
     end
+ 
+     begin
+      AiAccountParent.create(account_id: parent.id, parent_id: nil)
+    rescue
+    end
+
   end
 
 end
@@ -130,9 +153,14 @@ def generate_non_root_links(p, c)
     next if p_as_leaves.include? parent
     rando_index = rand(0..(number_of_c-1))
     random_c = c[ rando_index ]
-    puts "link from parent #{parent.id} to child #{random_c.id}"
+    puts "link from parent 3: #{parent.id} to child #{random_c.id}"
     begin
       AiAccountParent.create(account_id: random_c.id, parent_id: parent.id)
+    rescue
+    end
+
+    begin
+      AiAccountParent.create(account_id: parent.id, parent_id: nil)
     rescue
     end
   end

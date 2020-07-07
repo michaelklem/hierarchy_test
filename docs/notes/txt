@@ -34,6 +34,32 @@ join ai_accounts p on p.id = cte.parent_id
 
 
 
+-- find entire hierarchy of all root nodes, better version
+with recursive cte (id,account_id, parent_id, path) as (
+  select     
+  id,
+  account_id,
+             parent_id,
+             CAST(account_id AS CHAR(200)) as path
+  from       ai_accounts_parents
+  where      parent_id = 30877
+  union all
+  select     p.id,p.account_id,
+             p.parent_id,
+              CONCAT(cte.path, ",", p.account_id) as path
+  from       ai_accounts_parents p
+  inner join cte
+          on p.parent_id = cte.account_id
+)
+select * from cte;
+
+SELECT id, name, getpath(id) AS path FROM category HAVING path LIKE 'category1/category2%';
+
+
+
+
+
+
 -- find entire hierarchy of a specific node (id 1)
 WITH RECURSIVE cte AS
 (

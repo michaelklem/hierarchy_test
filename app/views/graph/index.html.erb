@@ -36,6 +36,7 @@ var nodes = JSON.parse( nodes_str )
 var new_states = {}
 for (var i =0; i < nodes.length; i++) {
   var node_type = nodes[i][1]
+  console.log('node: ' + nodes[i][0])
   new_states[ nodes[i][0] ] = {  description: node_type, style: "fill: " + get_fill_color( node_type)}
 }
 
@@ -46,6 +47,7 @@ Object.keys(states).forEach(function(state) {
   var value = states[state];
   value.label = state;
   value.rx = value.ry = 5;
+  //console.log('set node: ' + state )
   g.setNode(state, value);
 });
 
@@ -62,7 +64,12 @@ for (var i =0; i < edges.length; i++) {
 //  if (temp.parent_id !== null && (node_ids.includes(temp.parent_id))) {
   if (temp.parent_id !== null) {
     //console.log('par: ' + temp.parent_id + ' a: ' + temp.account_id)
-    g.setEdge( temp.parent_id, temp.account_id, {})
+    if (g.node(temp.parent_id) === undefined) {
+      console.log('missing: ' + temp.parent_id)
+    }
+    else {
+      g.setEdge( temp.parent_id, temp.account_id, {})
+    }
   }
 }
 
@@ -133,6 +140,19 @@ mouse_over_effect(svg)
     highlight_nodes(svg)
   }
  
+var xxx = []
+ function find_parents(parents){
+    for (var i=0; i < parents.length; i++) {
+      var p = parents[i];
+      xxx.push(p)
+      console.log( 'parent: ' + p )
+      var p2 = g.predecessors(p)
+      if (p2 !== undefined) {
+        find_parents(p2)
+      }
+    }
+ }
+ 
   function highlight_nodes(svg) {
     var allnodes = svg.selectAll("g.nodes rect");
     var edgelabels = svg.selectAll(".edgeLabel");
@@ -150,7 +170,47 @@ mouse_over_effect(svg)
         allnodes.style("opacity", 0.2);                                      //hide all nodes
         edgelabels.style("opacity", 0.2);                                    //hide all link labels  
         var elemtosearch = d; 
+        // 666
+        var z = g.node(d).description
+        console.log(z)
         var testit = g.nodeEdges(d);
+
+        var parent_list = []
+        var parents = g.predecessors(d);	
+        xxx = []
+        find_parents(parents) 
+              console.log('xxx: ' + xxx)
+
+
+        // highlight parent nodes
+        allnodes.each(function(d,id){ 
+            var i;
+            for (i = 0; i < xxx.length; i++){  
+              console.log('d: ' + d)
+
+              if (xxx[i] === d ) {
+                d3.select(this).style("opacity",1);                                 
+              }				
+            }
+                  //if (elemtosearch == d) d3.select(this).style("opacity",1);     // the actual node we hover				
+        })
+        // highlight parent paths
+        allpathes.each(function(d,id){                                       //search all pathes
+          var i;
+          for (i = 0; i < xxx.length; i++){  
+            if (xxx[i] === d.v ) {
+              //console.log('d: ' + d.v + ' w: ' + d.w)
+            //}                            // in testit we have all neighbors of the actual node     
+           // if ((xxx[i].w == d.w && elemtosearch == d.w) || (xxx[i].v == d.v && elemtosearch == d.v)) {                                      //if the child is the actual hovered make it visibile 
+              var labelfound = id
+              d3.select(this).style("opacity",1);
+              edgelabels.each(function(d,id){
+                if (labelfound == id) d3.select(this).style("opacity", 1);   
+              })
+            }  
+          }
+		    })
+
         var selectit = g.neighbors(d);	   
         allpathes.each(function(d,id){                                       //search all pathes
           var i;
@@ -166,15 +226,15 @@ mouse_over_effect(svg)
 		    })
         
         allnodes.each(function(d,id){ 
-			  var i;
-			  for (i = 0; i < d.length; i++){
-                 if (selectit[i] == d) {
-				    d3.select(this).style("opacity",1);                                 
-				   }				
-				}
-              if (elemtosearch == d) d3.select(this).style("opacity",1);     // the actual node we hover				
-		   })
-	   })
+            var i;
+            for (i = 0; i < d.length; i++){
+                    if (selectit[i] == d) {
+                d3.select(this).style("opacity",1);                                 
+              }				
+            }
+                  if (elemtosearch == d) d3.select(this).style("opacity",1);     // the actual node we hover				
+          })
+        })
 	   .on("mouseout",function(d,id){
 		   allnodes.style("opacity", 1);                                      // 
 		   allpathes.style("opacity", 1);
