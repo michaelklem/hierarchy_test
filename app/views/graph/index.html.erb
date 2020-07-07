@@ -192,21 +192,17 @@ var xxx = []
                 d3.select(this).style("opacity",1);                                 
               }				
             }
-                  //if (elemtosearch == d) d3.select(this).style("opacity",1);     // the actual node we hover				
         })
         // highlight parent paths
         allpathes.each(function(d,id){                                       //search all pathes
           var i;
           for (i = 0; i < xxx.length; i++){  
             if (xxx[i] === d.v ) {
-              //console.log('d: ' + d.v + ' w: ' + d.w)
-            //}                            // in testit we have all neighbors of the actual node     
-           // if ((xxx[i].w == d.w && elemtosearch == d.w) || (xxx[i].v == d.v && elemtosearch == d.v)) {                                      //if the child is the actual hovered make it visibile 
-              var labelfound = id
-              d3.select(this).style("opacity",1);
-              edgelabels.each(function(d,id){
-                if (labelfound == id) d3.select(this).style("opacity", 1);   
-              })
+              console.log('edge d: ' + d.v + ' w: ' + d.w)
+
+              if (xxx.includes(d.w)) {
+                d3.select(this).style("opacity",1);
+              }
             }  
           }
 		    })
