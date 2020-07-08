@@ -2,6 +2,40 @@ class AiAccount < ApplicationRecord
   has_many :parents, primary_key: 'id',  foreign_key: 'parent_id', class_name: 'AiAccountParent'
   has_many :children, primary_key: 'id',  foreign_key: 'account_id', class_name: 'AiAccountParent'
 
+  # Based on the node_id passed in, return all unique paretn node ids
+  #  Returns an array of numeric ids for each paretn node
+  def self.get_all_parent_node_ids(node_id, filter_by_account_type = -1)
+    sql = "select root_path from ai_accounts_parents_paths where account_id = #{node_id}"
+    v = self.connection.select_values(sql)
+
+    # v = ["32805,32813,32821,32824,32832", "32806,32813,32821,32824,32832", "32808,32813,32821,32824,32832", "32809,32818,32821,32824,32832", "32810,32818,32821,32824,32832", "32813,32821,32824,32832", "32818,32821,32824,32832", "32821,32824,32832", "32824,32832", "32832"] 
+
+    ids = []
+    v.each do |a|
+      b = a.split(',')
+      b.each do |number_str|
+        ids << number_str.to_i
+      end
+    end
+
+    # returns [32805, 32806, 32808, 32809, 32810, 32813, 32818, 32821, 32824, 32832] 
+    ids = ids.uniq.sort
+
+    if filter_by_account_type != -1
+      ids = self.filter_parents_by_account_type( ids, filter_by_account_type )
+    end 
+
+    ids
+  end
+
+  def self.filter_parents_by_account_type( ids, account_type )
+    sql = "select id from ai_accounts
+      where id in (#{ids.join(',')})
+      and account_type = #{account_type}"
+    v = self.connection.select_values(sql)
+  end
+
+
   def self.links_for_nodes(node_ids)
     sql = "select distinct a.id, a.account_type from ai_accounts a
 	     join ai_accounts_parents aap2 on aap2.account_id = a.id

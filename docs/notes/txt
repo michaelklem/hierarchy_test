@@ -60,6 +60,7 @@ SELECT id, name, getpath(id) AS path FROM category HAVING path LIKE 'category1/c
 
 
 
+
 -- find entire hierarchy of a specific node (id 1)
 WITH RECURSIVE cte AS
 (

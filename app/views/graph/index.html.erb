@@ -36,7 +36,7 @@ var nodes = JSON.parse( nodes_str )
 var new_states = {}
 for (var i =0; i < nodes.length; i++) {
   var node_type = nodes[i][1]
-  console.log('node: ' + nodes[i][0])
+  //console.log('node: ' + nodes[i][0])
   new_states[ nodes[i][0] ] = {  description: node_type, style: "fill: " + get_fill_color( node_type)}
 }
 
@@ -65,7 +65,7 @@ for (var i =0; i < edges.length; i++) {
   if (temp.parent_id !== null) {
     //console.log('par: ' + temp.parent_id + ' a: ' + temp.account_id)
     if (g.node(temp.parent_id) === undefined) {
-      console.log('missing: ' + temp.parent_id)
+      //console.log('missing: ' + temp.parent_id)
     }
     else {
       g.setEdge( temp.parent_id, temp.account_id, {})
@@ -145,7 +145,7 @@ var xxx = []
     for (var i=0; i < parents.length; i++) {
       var p = parents[i];
       xxx.push(p)
-      console.log( 'parent: ' + p )
+      //console.log( 'parent: ' + p )
       var p2 = g.predecessors(p)
       if (p2 !== undefined) {
         find_parents(p2)
@@ -179,14 +179,14 @@ var xxx = []
         var parents = g.predecessors(d);	
         xxx = []
         find_parents(parents) 
-              console.log('xxx: ' + xxx)
+             // console.log('xxx: ' + xxx)
 
 
         // highlight parent nodes
         allnodes.each(function(d,id){ 
             var i;
             for (i = 0; i < xxx.length; i++){  
-              console.log('d: ' + d)
+              //console.log('d: ' + d)
 
               if (xxx[i] === d ) {
                 d3.select(this).style("opacity",1);                                 
@@ -198,7 +198,7 @@ var xxx = []
           var i;
           for (i = 0; i < xxx.length; i++){  
             if (xxx[i] === d.v ) {
-              console.log('edge d: ' + d.v + ' w: ' + d.w)
+              //console.log('edge d: ' + d.v + ' w: ' + d.w)
 
               if (xxx.includes(d.w)) {
                 d3.select(this).style("opacity",1);
